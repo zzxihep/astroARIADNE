@@ -16,7 +16,6 @@ def get_spectrum_model(artist: SEDPlotter):
     else:
         norm = artist.theta[3]
         Av = artist.theta[4]
-    return artist.spectrum_model
     if artist.grid == 'btcond':
         wave, flux = artist.fetch_btcond()
         lower_lim = 0.125 < wave
