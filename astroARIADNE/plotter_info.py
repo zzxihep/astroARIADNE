@@ -1,5 +1,6 @@
 from .plotter import SEDPlotter
 from extinction import apply
+from astropy import units as u
 
 
 def get_spectrum_model(artist: SEDPlotter):
