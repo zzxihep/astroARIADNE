@@ -1,4 +1,5 @@
 from .plotter import SEDPlotter
+from extinction import apply
 
 
 def get_spectrum_model(artist: SEDPlotter):
@@ -23,6 +24,7 @@ def get_spectrum_model(artist: SEDPlotter):
             upper_lim = wave < wave[-1]
         wave = wave[lower_lim * upper_lim]
         flux = flux[lower_lim * upper_lim]
-        ext = self.av_law(wave * 1e4, Av, Rv)
+        ext = artist.av_law(wave * 1e4, Av, Rv)
         flx = apply(ext, flux)
+        flx *= norm
         return wave, flx
