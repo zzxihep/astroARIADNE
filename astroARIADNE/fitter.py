@@ -6,7 +6,7 @@ __all__ = ['Fitter', 'dynesty_log_like', 'dynesty_loglike_bma', 'pt_dynesty',
 import pickle
 import time
 import warnings
-from multiprocessing import Pool, set_start_method
+from multiprocessing import (Pool, set_start_method)
 from tqdm import tqdm
 
 import extinction
@@ -19,8 +19,8 @@ from astropy.constants import sigma_sb
 from isochrones.interp import DFInterpolator
 from termcolor import colored
 
-from .config import filesdir, gridsdir, priorsdir, filter_names, colors, \
-    iso_mask, iso_bands
+from .config import (filesdir, gridsdir, priorsdir, filter_names, colors,
+                     iso_mask, iso_bands)
 from .error import *
 from .isochrone import estimate
 from .phot_utils import *
@@ -388,9 +388,9 @@ class Fitter:
                 # We'll assume that if ARIADNE is running in offline mode
                 # Then the star will have > 4000 K
                 if (mod.lower() in ['btcond', 'btnextgen'] and
-                    self.star.temp + self.star.temp_e > 4000) or \
+                    self.star.temp > 4000) or \
                         (mod.lower() in ['ck04', 'kurucz'] and
-                         self.star.temp + self.star.temp_e < 4000) or \
+                         self.star.temp < 4000) or \
                         (mod.lower() == 'coelho' and self.star.temp < 3500):
                     continue
 
@@ -433,7 +433,7 @@ class Fitter:
         if not self._norm:
             if self.star.dist != -1:
                 defaults['dist'] = st.truncnorm(
-                    a=0, b=1e100, loc=self.star.dist, scale=5 * self.star.dist_e
+                    a=0, b=1e100, loc=self.star.dist, scale=1.5 * self.star.dist_e
                 )
             else:
                 defaults['dist'] = st.uniform(loc=1, scale=3000)
@@ -467,7 +467,7 @@ class Fitter:
         for filt, flx, flx_e in zip(self.star.filter_names[mask], flxs, errs):
             p_ = get_noise_name(filt) + '_noise'
             mu = 0
-            sigma = flx_e * 100
+            sigma = flx_e * 10
             b = (1 - flx) / flx_e
             defaults[p_] = st.truncnorm(loc=mu, scale=sigma, a=0, b=b)
             # defaults[p_] = st.uniform(loc=0, scale=5)
@@ -1174,8 +1174,6 @@ class Fitter:
             probdat += f'{k}_probability\t{avgd["weights"][k]:.4f}\n'
 
         # Get synthetic mag and fluxes for highest probability model.
-        # To calculate synth fluxes for all bands use btsettl.
-        max_prob_mod = 'btsettl'
         intp = self.load_interpolator(max_prob_mod)
         ogteff = avgd['originals'][max_prob_mod]['teff']
         oglogg = avgd['originals'][max_prob_mod]['logg']

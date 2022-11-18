@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from setuptools import setup, find_packages
+    from setuptools import (setup, find_packages)
 except ImportError:
-    from distutils.core import setup, find_packages
+    from distutils.core import (setup, find_packages)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name="astroARIADNE",
-    version="1.0.4",
+    version="1.0.8",
     author="Jose Vines",
     author_email="jose.vines@ug.uchile.cl",
     maintainer="Jose Vines",

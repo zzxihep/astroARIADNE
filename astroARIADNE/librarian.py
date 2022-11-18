@@ -298,8 +298,8 @@ class Librarian:
         """
         print('Looking online for archival magnitudes for star', end=' ')
         print(self.starname)
-
-        cats = self.get_catalogs(self.ra, self.dec, self.radius)
+        catalogs = [c[1][0] for c in self.catalogs.items()]
+        cats = self.get_catalogs(self.ra, self.dec, self.radius, catalogs)
         skips = ['ASCC', 'GLIMPSE']
 
         for c in self.catalogs.keys():
@@ -671,12 +671,23 @@ class Librarian:
 
     @staticmethod
     def _get_distance(ra, dec, radius, g_id):
-        """Retrieve Bailer-Jones DR2 distance."""
-        cat = Vizier.query_region(
-            SkyCoord(
-                ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'
-            ), radius=radius
-        )['I/352/gedr3dis']
+        """Retrieve Bailer-Jones EDR3 distance."""
+        tries = [1, 2, 3, 4]
+        for t in tries:
+            try:
+                failed = False
+                cat = Vizier.query_region(
+                    SkyCoord(
+                        ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'),
+                    radius=radius / t,
+                    catalog='I/352/gedr3dis')['I/352/gedr3dis']
+                break
+            except TypeError:
+                failed = True
+                continue
+        if failed:
+            CatalogWarning(-1, 9).warn()
+            return -999, -999
         cat.sort('_r')
         idx = np.where(cat['Source'] == g_id)[0]
         if len(idx) == 0:
@@ -738,12 +749,12 @@ class Librarian:
         return res['source_id'][0]
 
     @staticmethod
-    def get_catalogs(ra, dec, radius):
+    def get_catalogs(ra, dec, radius, catalogs):
         """Retrieve available catalogs for a star from Vizier."""
         cats = Vizier.query_region(
             SkyCoord(
                 ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'
-            ), radius=radius
+            ), radius=radius, catalog=catalogs
         )
 
         return cats
