@@ -177,49 +177,50 @@ class Librarian:
         # If gaia DR3 id is provided, query by id
         query = f"""
             SELECT
-                dr3.parallax, dr3.parallax_error,
-                dr3.pmra, dr3.pmra_error,
-                dr3.pmdec, dr3.pmdec_error,
-                dr3.radial_velocity, dr3.radial_velocity_error,
-                dr2.teff_val,
-                dr2.teff_percentile_lower,
-                dr2.teff_percentile_upper,
-                dr2.radius_val,
-                dr2.radius_percentile_lower,
-                dr2.radius_percentile_upper,
-                dr2.lum_val,
-                dr2.lum_percentile_lower,
-                dr2.lum_percentile_upper,
-                dr2.source_id2 AS source_id
-            FROM
+                dr3.source_id,
+                dr3.parallax,
+                dr3.parallax_error,
+                dr3.parallax_over_error,
+                dr3.pmra,
+                dr3.pmra_error,
+                dr3.pmdec,
+                dr3.pmdec_error,
+                dr3.radial_velocity,
+                dr3.radial_velocity_error,
+                dr3.teff_gspphot AS teff_val,
+                dr3.teff_gspphot_lower AS teff_percentile_lower,
+                dr3.teff_gspphot_upper AS teff_percentile_upper,
+                dr3par.source_id,
+                dr3par.radius_gspphot AS radius_val,
+                dr3par.radius_gspphot_lower AS radius_percentile_lower,
+                dr3par.radius_gspphot_upper AS radius_percentile_upper,
+                dr3par.lum_flame AS lum_val,
+                dr3par.lum_flame_lower AS lum_percentile_lower,
+                dr3par.lum_flame_upper AS lum_percentile_upper
+            FROM 
                 gaiadr3.gaia_source AS dr3
             JOIN
                 (SELECT
-                    n.dr3_source_id AS source_id,
-                    n.dr2_source_id AS source_id2,
-                    dr2.teff_val,
-                    dr2.teff_percentile_lower,
-                    dr2.teff_percentile_upper,
-                    dr2.radius_val,
-                    dr2.radius_percentile_lower,
-                    dr2.radius_percentile_upper,
-                    dr2.lum_val,
-                    dr2.lum_percentile_lower,
-                    dr2.lum_percentile_upper
+                    dr3par.source_id,
+                    dr3par.radius_gspphot,
+                    dr3par.radius_gspphot_lower,
+                    dr3par.radius_gspphot_upper,
+                    dr3par.lum_flame,
+                    dr3par.lum_flame_lower,
+                    dr3par.lum_flame_upper,
+                    dr3par.mass_flame,
+                    dr3par.mass_flame_lower,
+                    dr3par.mass_flame_upper
                 FROM
-                    gaiadr3.dr2_neighbourhood AS n
-                JOIN
-                    gaiadr2.gaia_source AS dr2
-                ON
-                    n.dr2_source_id = dr2.source_id
+                    gaiadr3.astrophysical_parameters AS dr3par
                 WHERE
-                    n.dr3_source_id = {self.g_id}
-                ) AS dr2
+                    dr3par.source_id = {self.g_id}
+                ) AS dr3par
             ON
-                dr3.source_id = dr2.source_id
+                dr3.source_id = dr3par.source_id
             WHERE
-                dr3.source_id = {self.g_id}
-            """
+                dr3par.source_id = {self.g_id}
+        """
         j = Gaia.launch_job_async(query)
         res = j.get_results()
         self.dr2_id = res['source_id'][0]
